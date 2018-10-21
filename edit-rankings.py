@@ -1,10 +1,18 @@
 import pandas as pd
 
 df = pd.read_csv("./Data/2005/cf2005.csv")
-df = df.drop(columns=['Code','Ranking Group Abbreviation','Ranking Group'])
+
+ranking_group = df['Ranking Group Abbreviation']
+
+df = df.drop(columns=['Code','Ranking Group'])
+
+df2 = pd.read_csv("./Data/2005/team.csv")
 
 teams = df['Team']
+ranks = df["Rank"]
+
 new_teams = []
+new_ranks = []
 for i in range(len(teams)):
     team = teams[i].strip()
     if (" St" in team and " State" not in team):        
@@ -43,5 +51,24 @@ for i in range(len(teams)):
         team = team.replace("C ", "Central ")
     new_teams.append(team)
 
-df['Team'] = pd.Series(new_teams)
-print(df)
+ranking_group = df['Ranking Group Abbreviation']
+modified_df = pd.DataFrame(columns=['Year','Team','Ranking Group Abbreviation','Date','Rank'])
+count = 0
+for j in range(len(ranking_group)):
+    if (" ARG" == ranking_group[j]):
+        modified_df.loc[count] = df.iloc[j]
+        count += 1
+modified_df = modified_df.drop(columns=['Year','Ranking Group Abbreviation'])
+other_teams = df2['Name']
+allGood = True
+for name in new_teams:
+    if (name in other_teams == False):
+        allGood = False
+        print(name)
+modified_df['Team'] = pd.Series(new_teams)
+if (allGood):
+    modified_df.to_csv("rankings_2005.csv")
+    print("Good")
+else:
+    print("Not completely synced")
+
