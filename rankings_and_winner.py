@@ -61,7 +61,6 @@ Returns a default ranking if team is not ranked.
 def get_team_ranking(team_code, game_date, default_ranking):
 	team_name = match_team_code_to_team(team_code)
 	ranking_date = match_game_date_to_ranking_date(game_date)
-	print(ranking_date)
 	all_rankings_for_date = rankings[rankings['Datetime'] == ranking_date]
 	if team_name not in list(all_rankings_for_date['Team']):
 		return default_ranking
@@ -90,3 +89,23 @@ def determine_winning_team(game_code):
 	else:
 		return "Away"
 
+'''
+Returns the date of the game given a game code
+'''
+def get_game_date(game_code):
+	current_game = games[games['Game Code'] == game_code]
+	return list(current_game['Datetime'])[0]
+
+rankings_dates_to_datetime()
+game_dates_to_datetime()
+winning_team_ranks = []
+losing_team_ranks = []
+for index, game in games.iterrows():
+	winning_team = determine_winning_team(game['Game Code'])
+	if (winning_team == "Home"):
+		winning_team_ranks.append(get_team_ranking(game['Home Team Code'], game['Datetime'], 130))
+		losing_team_ranks.append(get_team_ranking(game['Visit Team Code'], game['Datetime'], 130))
+	else:
+		winning_team_ranks.append(get_team_ranking(game['Visit Team Code'], game['Datetime'], 130))
+		losing_team_ranks.append(get_team_ranking(game['Home Team Code'], game['Datetime'], 130))
+	
