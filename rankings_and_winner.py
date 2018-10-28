@@ -1,5 +1,10 @@
 import pandas as pd
 import datetime
+import matplotlib.pyplot as plt
+import seaborn as sns; sns.set()
+import numpy as np
+from sklearn.cluster import KMeans
+from sklearn.datasets.samples_generator import make_blobs
 
 games = pd.read_csv("./Data/2005/game.csv")
 rankings = pd.read_csv("./Data/2005/rankings_2005.csv")
@@ -108,4 +113,17 @@ for index, game in games.iterrows():
 	else:
 		winning_team_ranks.append(get_team_ranking(game['Visit Team Code'], game['Datetime'], 130))
 		losing_team_ranks.append(get_team_ranking(game['Home Team Code'], game['Datetime'], 130))
+plotlist = np.column_stack((winning_team_ranks, losing_team_ranks))
+
+kmeans = KMeans(n_clusters=20)
+kmeans.fit(plotlist)
+y_kmeans = kmeans.predict(plotlist)
+
+
+plt.scatter(plotlist[:, 0], plotlist[:, 1], c=y_kmeans, s=50, cmap='viridis')
+
+centers = kmeans.cluster_centers_
+plt.scatter(centers[:, 0], centers[:, 1], c='black', s=200, alpha=0.5)
+
+plt.show()
 	
