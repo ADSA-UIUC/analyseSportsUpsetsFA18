@@ -101,6 +101,72 @@ def get_game_date(game_code):
 	current_game = games[games['Game Code'] == game_code]
 	return list(current_game['Datetime'])[0]
 
+'''
+Returns tuple in the form (winning_team_code, losing_team_code)
+'''
+def get_winning_team_and_losing_team(game_code):
+	current_game = team_game_stats[team_game_stats['Game Code'] == game_code]
+	team_codes = list(current_game['Team Code'])
+	team_1_score = int(current_game[current_game['Team Code'] == team_codes[0]]['Points'])
+	team_2_score = int(current_game[current_game['Team Code'] == team_codes[1]]['Points'])
+	if team_1_score > team_2_score:
+		return (team_codes[0], team_codes[1])
+	else:
+		return (team_codes[1], team_codes[0])
+
+'''
+Given game codes of upsets, creates csv files that relate to the winner of the game
+'''
+def create_winning_team_csv_files(game_codes):
+	winning_team_stats_for_game = pd.DataFrame()
+	winning_team_average_stats = pd.DataFrame()
+	for game_code in game_codes:
+		winning_team_code = get_winning_team_and_losing_team(game_code)[0]
+		game_stats = team_game_stats[team_game_stats["Game Code"] == game_code]
+		game_stats_winning_team = game_stats[game_stats["Team Code"] == winning_team_code]
+		winning_team_stats_for_game = winning_team_stats_for_game.append(game_stats_winning_team)
+		all_game_stats_for_winning_team = team_game_stats[team_game_stats["Team Code"] == winning_team_code]
+		to_average = all_game_stats_for_winning_team[all_game_stats_for_winning_team["Game Code"] != game_code]
+		averages = pd.DataFrame(to_average.mean())
+		averages = averages.transpose()
+		averages["Game Code"] = game_code
+		averages["Team Code"] = winning_team_code
+		winning_team_average_stats = winning_team_average_stats.append(averages)
+	winning_team_average_stats = winning_team_average_stats.add_prefix("Average ")
+	new_columns = winning_team_average_stats.columns.values
+	new_columns[0] = 'Team Code'
+	new_columns[1] = 'Game Code'
+	winning_team_average_stats.columns = new_columns
+	print(winning_team_stats_for_game)
+	print(winning_team_average_stats)
+
+'''
+Given game codes of upsets, creates csv files that relate to the winner of the game
+'''
+def create_losing_team_csv_files(game_codes):
+	losing_team_stats_for_game = pd.DataFrame()
+	losing_team_average_stats = pd.DataFrame()
+	for game_code in game_codes:
+		losing_team_code = get_winning_team_and_losing_team(game_code)[1]
+		game_stats = team_game_stats[team_game_stats["Game Code"] == game_code]
+		game_stats_losing_team = game_stats[game_stats["Team Code"] == losing_team_code]
+		losing_team_stats_for_game = losing_team_stats_for_game.append(game_stats_losing_team)
+		all_game_stats_for_losing_team = team_game_stats[team_game_stats["Team Code"] == losing_team_code]
+		to_average = all_game_stats_for_losing_team[all_game_stats_for_losing_team["Game Code"] != game_code]
+		averages = pd.DataFrame(to_average.mean())
+		averages = averages.transpose()
+		averages["Game Code"] = game_code
+		averages["Team Code"] = losing_team_code
+		losing_team_average_stats = losing_team_average_stats.append(averages)
+	losing_team_average_stats = losing_team_average_stats.add_prefix("Average ")
+	new_columns = losing_team_average_stats.columns.values
+	new_columns[0] = 'Team Code'
+	new_columns[1] = 'Game Code'
+	losing_team_average_stats.columns = new_columns
+	print(losing_team_stats_for_game)
+	print(losing_team_average_stats)
+
+'''
 rankings_dates_to_datetime()
 game_dates_to_datetime()
 winning_team_ranks = []
@@ -115,7 +181,7 @@ for index, game in games.iterrows():
 		losing_team_ranks.append(get_team_ranking(game['Home Team Code'], game['Datetime'], 130))
 plotlist = np.column_stack((winning_team_ranks, losing_team_ranks))
 
-kmeans = KMeans(n_clusters=20)
+kmeans = KMeans(n_clusters=10)
 kmeans.fit(plotlist)
 y_kmeans = kmeans.predict(plotlist)
 
@@ -126,4 +192,5 @@ centers = kmeans.cluster_centers_
 plt.scatter(centers[:, 0], centers[:, 1], c='black', s=200, alpha=0.5)
 
 plt.show()
-	
+'''
+create_losing_team_csv_files(list(games["Game Code"]))	
