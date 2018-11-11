@@ -145,8 +145,10 @@ def create_winning_team_csv_files(game_codes):
 	winning_team_average_stats.columns = new_columns
 	winning_team_stats_for_game["Home or Away"] = home_or_away
 	winning_team_average_stats["Home or Away"] = home_or_away
-	print(winning_team_stats_for_game)
-	print(winning_team_average_stats)
+	winning_team_stats_for_game.to_csv("winning-team-stats-for-upsets.csv")
+	winning_team_average_stats.to_csv("winning-team-average-stats.csv")
+	#print(winning_team_stats_for_game)
+	#print(winning_team_average_stats)
 
 '''
 Given game codes of upsets, creates csv files that relate to the winner of the game
@@ -179,8 +181,10 @@ def create_losing_team_csv_files(game_codes):
 	losing_team_average_stats.columns = new_columns
 	losing_team_stats_for_game["Home or Away"] = home_or_away
 	losing_team_average_stats["Home or Away"] = home_or_away
-	print(losing_team_stats_for_game)
-	print(losing_team_average_stats)
+	losing_team_stats_for_game.to_csv("losing-team-stats-for-upsets.csv")
+	losing_team_average_stats.to_csv("losing-team-average-stats.csv")
+	#print(losing_team_stats_for_game)
+	#print(losing_team_average_stats)
 
 
 rankings_dates_to_datetime()
@@ -221,14 +225,11 @@ dictlist = []
 for key, value in mydict.items():
     temp = [key,value]
     dictlist.append(temp)
-games_in_cluster = dictlist[0]
-for j in games_in_cluster[1]:
-	print(game_code_list[j])
-''' 
+
 for i in dictlist:
     print('#############')
     print('Cluster ' + str(i[0]) + ';')
     for j in i[1]:
         print(game_code_list[j])
-''' 
+
 plt.show()
