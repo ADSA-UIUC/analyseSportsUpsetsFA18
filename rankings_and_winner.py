@@ -120,8 +120,14 @@ Given game codes of upsets, creates csv files that relate to the winner of the g
 def create_winning_team_csv_files(game_codes):
 	winning_team_stats_for_game = pd.DataFrame()
 	winning_team_average_stats = pd.DataFrame()
+	home_or_away = []
 	for game_code in game_codes:
 		winning_team_code = get_winning_team_and_losing_team(game_code)[0]
+		home_team_code = str(game_code)[len(str(game_code))-12:len(str(game_code))-8]
+		if winning_team_code == int(home_team_code):
+			home_or_away.append("Home")
+		else:
+			home_or_away.append("Away")
 		game_stats = team_game_stats[team_game_stats["Game Code"] == game_code]
 		game_stats_winning_team = game_stats[game_stats["Team Code"] == winning_team_code]
 		winning_team_stats_for_game = winning_team_stats_for_game.append(game_stats_winning_team)
@@ -137,6 +143,8 @@ def create_winning_team_csv_files(game_codes):
 	new_columns[0] = 'Team Code'
 	new_columns[1] = 'Game Code'
 	winning_team_average_stats.columns = new_columns
+	winning_team_stats_for_game["Home or Away"] = home_or_away
+	winning_team_average_stats["Home or Away"] = home_or_away
 	print(winning_team_stats_for_game)
 	print(winning_team_average_stats)
 
@@ -146,8 +154,14 @@ Given game codes of upsets, creates csv files that relate to the winner of the g
 def create_losing_team_csv_files(game_codes):
 	losing_team_stats_for_game = pd.DataFrame()
 	losing_team_average_stats = pd.DataFrame()
+	home_or_away = []
 	for game_code in game_codes:
 		losing_team_code = get_winning_team_and_losing_team(game_code)[1]
+		home_team_code = str(game_code)[len(str(game_code))-12:len(str(game_code))-8]
+		if losing_team_code == int(home_team_code):
+			home_or_away.append("Home")
+		else:
+			home_or_away.append("Away")
 		game_stats = team_game_stats[team_game_stats["Game Code"] == game_code]
 		game_stats_losing_team = game_stats[game_stats["Team Code"] == losing_team_code]
 		losing_team_stats_for_game = losing_team_stats_for_game.append(game_stats_losing_team)
@@ -163,34 +177,58 @@ def create_losing_team_csv_files(game_codes):
 	new_columns[0] = 'Team Code'
 	new_columns[1] = 'Game Code'
 	losing_team_average_stats.columns = new_columns
+	losing_team_stats_for_game["Home or Away"] = home_or_away
+	losing_team_average_stats["Home or Away"] = home_or_away
 	print(losing_team_stats_for_game)
 	print(losing_team_average_stats)
 
-'''
+
 rankings_dates_to_datetime()
 game_dates_to_datetime()
 winning_team_ranks = []
 losing_team_ranks = []
 for index, game in games.iterrows():
-	winning_team = determine_winning_team(game['Game Code'])
-	if (winning_team == "Home"):
-		winning_team_ranks.append(get_team_ranking(game['Home Team Code'], game['Datetime'], 130))
-		losing_team_ranks.append(get_team_ranking(game['Visit Team Code'], game['Datetime'], 130))
-	else:
-		winning_team_ranks.append(get_team_ranking(game['Visit Team Code'], game['Datetime'], 130))
-		losing_team_ranks.append(get_team_ranking(game['Home Team Code'], game['Datetime'], 130))
+    winning_team = determine_winning_team(game['Game Code'])
+    if (winning_team == "Home"):
+        winning_team_ranks.append(get_team_ranking(game['Home Team Code'], game['Datetime'], 130))
+        losing_team_ranks.append(get_team_ranking(game['Visit Team Code'], game['Datetime'], 130))
+    else:
+        winning_team_ranks.append(get_team_ranking(game['Visit Team Code'], game['Datetime'], 130))
+        losing_team_ranks.append(get_team_ranking(game['Home Team Code'], game['Datetime'], 130))
 plotlist = np.column_stack((winning_team_ranks, losing_team_ranks))
-
-kmeans = KMeans(n_clusters=10)
+ 
+game_code_list = games['Game Code'].tolist()
+ 
+kmeans = KMeans(n_clusters=20)
 kmeans.fit(plotlist)
 y_kmeans = kmeans.predict(plotlist)
-
-
+ 
+ 
 plt.scatter(plotlist[:, 0], plotlist[:, 1], c=y_kmeans, s=50, cmap='viridis')
-
+ 
+for i in range(len(game_code_list)):
+    plt.annotate(game_code_list[i], (plotlist[i, 0], plotlist[i, 1]))
+ 
 centers = kmeans.cluster_centers_
 plt.scatter(centers[:, 0], centers[:, 1], c='black', s=200, alpha=0.5)
-
+ 
+for i in range(len(centers)):
+    plt.annotate(str(i-1), (centers[i, 0], centers[i, 1]))
+ 
+mydict = {i: np.where(kmeans.labels_ == i)[0] for i in range(kmeans.n_clusters)}
+ 
+dictlist = []
+for key, value in mydict.items():
+    temp = [key,value]
+    dictlist.append(temp)
+games_in_cluster = dictlist[0]
+for j in games_in_cluster[1]:
+	print(game_code_list[j])
+''' 
+for i in dictlist:
+    print('#############')
+    print('Cluster ' + str(i[0]) + ';')
+    for j in i[1]:
+        print(game_code_list[j])
+''' 
 plt.show()
-'''
-create_losing_team_csv_files(list(games["Game Code"]))	
